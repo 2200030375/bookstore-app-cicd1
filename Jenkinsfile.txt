@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        GIT_REPO = 'https://github.com/2200030375/book-app-cicd.git'  // Your Git repository URL
+        GIT_REPO = 'https://github.com/2200030375/book-app-cicd1.git'  // Your Git repository URL
         BRANCH = 'main'  // Git branch to deploy
         APP_DIR = '/var/www/bookstore'  // Deployment directory on the server
     }
