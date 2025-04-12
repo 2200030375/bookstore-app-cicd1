@@ -1,12 +1,27 @@
-- name: Deploy Bookstore App
+---
+- name: Deploy Book App to Server
   hosts: web
-  become: yes
+  become: true
   tasks:
-    - name: Copy app files to server
-      synchronize:
-        src: ../app/
-        dest: /var/www/bookstore
-        delete: yes
+    - name: Ensure Nginx is installed
+      apt:
+        name: nginx
+        state: present
+        update_cache: yes
 
-    - name: Restart web server
-      shell: systemctl restart nginx
+    - name: Copy app files to server
+      copy:
+        src: ../app/
+        dest: /var/www/html/
+        owner: www-data
+        group: www-data
+        mode: '0755'
+
+    - name: Restart Nginx
+      service:
+        name: nginx
+        state: restarted
+
+    - name: Display deployment message
+      debug:
+        msg: "✅ Book app deployed successfully to {{ inventory_hostname }}"
