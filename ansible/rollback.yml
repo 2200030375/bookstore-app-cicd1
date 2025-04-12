@@ -1,0 +1,9 @@
+- name: Rollback Bookstore App
+  hosts: web
+  become: yes
+  tasks:
+    - name: Revert to previous commit
+      shell: |
+        cd /var/www/bookstore
+        git reset --hard `cat /var/www/bookstore/version.txt`
+        systemctl restart nginx
