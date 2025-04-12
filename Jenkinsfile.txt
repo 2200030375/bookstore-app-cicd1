@@ -2,73 +2,44 @@ pipeline {
     agent any
 
     environment {
-        GIT_REPO = 'https://github.com/2200030375/book-app-cicd1.git'  // Your Git repository URL
-        BRANCH = 'main'  // Git branch to deploy
-        APP_DIR = '/var/www/bookstore'  // Deployment directory on the server
+        GIT_REPO = 'https://github.com/2200030375/book-app-cicd1.git'
+        BRANCH = 'main'
     }
 
     stages {
-        stage('Clone Repository') {
+        stage('Checkout') {
             steps {
                 git branch: "${BRANCH}", url: "${GIT_REPO}"
             }
         }
 
-        stage('Install Dependencies') {
+        stage('Build') {
             steps {
-                script {
-                    // Example: Install dependencies for a React app (use this if it's a Node.js app)
-                    sh 'npm install'
-                }
-            }
-        }
-
-        stage('Build/Package') {
-            steps {
-                script {
-                    // Example: Build your React app (production build)
-                    sh 'npm run build'
-                }
+                echo '🔧 Building the app...'
+                // Add your build steps here if needed (npm install, etc.)
             }
         }
 
         stage('Deploy with Ansible') {
             steps {
-                script {
-                    // Deploy the app to the server using Ansible
-                    sh 'ansible-playbook ansible/deploy.yml -i ansible/inventory'
-                }
-            }
-        }
-
-        stage('Health Check') {
-            steps {
-                script {
-                    // Perform a health check (e.g., check if the app is running)
-                    def response = sh(script: 'curl -s -o /dev/null -w "%{http_code}" http://target-server-ip', returnStdout: true).trim()
-                    if (response != "200") {
-                        error("Deployment failed! Triggering rollback...")
-                    }
-                }
-            }
-        }
-
-        stage('Save Current Version') {
-            steps {
-                script {
-                    // Save the current Git commit hash to version.txt (for rollback purposes)
-                    sh 'git rev-parse HEAD > version.txt'
-                    archiveArtifacts artifacts: 'version.txt', fingerprint: true
+                echo '🚀 Deploying the application using Ansible...'
+                dir('ansible') {
+                    // Show ansible-playbook output directly in Jenkins console
+                    sh '''
+                        echo "📦 Running deploy.yml..."
+                        ansible-playbook -i inventory deploy.yml
+                    '''
                 }
             }
         }
     }
 
     post {
+        success {
+            echo '✅ Deployment successful! 🎉'
+        }
         failure {
-            echo "Rolling back to previous stable version..."
-            // Trigger the rollback playbook in case of failure
-            sh 'ansible-playbook ansible/rollback.yml -i ansible/inventory'
+            echo '❌ Deployment failed. Check Ansible logs in console output.'
         }
     }
 }
